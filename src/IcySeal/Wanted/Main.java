@@ -149,7 +149,20 @@ public class Main extends JavaPlugin{
 				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("goto"))){
 					if(args.length==2){
 						if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
+							if(!reportMgr.gobackLocs.containsKey(p)){reportMgr.gobackLocs.put(p, p.getLocation());}
 							p.teleport(reportMgr.reports.get(Integer.parseInt(args[1])).L);
+						}
+					}else{
+						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
+					}
+				}
+				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("return"))){
+					if(args.length==2){
+						if(reportMgr.gobackLocs.containsKey(p)){
+							p.teleport(reportMgr.gobackLocs.get(p));
+							reportMgr.gobackLocs.remove(p);
+						}else{
+							sendM(p,ChatColor.RED+"[Wanted] You cannot use this command at this time.");
 						}
 					}else{
 						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
@@ -158,9 +171,14 @@ public class Main extends JavaPlugin{
 				if( (Permissions.getHandler().has(p, "wanted.manage")) && (args[0].equalsIgnoreCase("save"))){
 					rLog.saveData();
 				}
+				
+				
+				
+				
 			}
 			if((cmd.getName().equalsIgnoreCase("respond") && (Permissions.getHandler().has(p, "wanted.manage")))){
 				if(reportMgr.live!=null){
+					if(!reportMgr.gobackLocs.containsKey(p)){reportMgr.gobackLocs.put(p, p.getLocation());}
 					p.teleport(reportMgr.live.L);
 				}else{
 					sendM(p,ChatColor.RED+"[Wanted]There is no live report at the moment.");
@@ -181,6 +199,7 @@ class reportManager{
 	public report live;
 	public ArrayList<String> blocked = new ArrayList<String>();
 	public HashMap<Integer, report> reports = new HashMap<Integer, report>();
+	public HashMap<Player, Location> gobackLocs = new HashMap<Player, Location>();
 
 	public reportManager(Main instance){
 
