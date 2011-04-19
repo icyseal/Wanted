@@ -8,3 +8,6 @@ commands:
   wa:
     description:
     usage:
+  respond:
+    description:
+    usage:

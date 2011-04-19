@@ -66,71 +66,104 @@ public class Main extends JavaPlugin{
 
 		}
 		if(!new File(rLog.dataFile).exists()){
-			try { new File(rLog.dataFile).createNewFile(); }catch(Exception e){ outputConsole("Could not create save file."); }
+			//try { new File(rLog.dataFile).createNewFile(); }catch(Exception e){ outputConsole("Could not create save file."); }
+			outputConsole("Running setup.");
 			rLog.setup();
 		}else{
+			outputConsole("Found data file commencing load.");
 			rLog.loadData();
 		}
-		
-		
+
+
 
 		PluginDescriptionFile pdfFile = this.getDescription();
-		outputConsole( " version [" + pdfFile.getVersion() + "] enabled." );
+		outputConsole("version [" + pdfFile.getVersion() + "] enabled." );
 
 	}
 	public boolean onCommand(CommandSender sender, Command cmd, String name,
 			String[] args) {
 		if(sender instanceof Player && args.length > 0){
 			Player p = (Player)sender;
+			if((cmd.getName().equalsIgnoreCase("wanted")||cmd.getName().equalsIgnoreCase("wa"))){
+				if(Permissions.getHandler().has(p, "wanted.file") && (args[0].equalsIgnoreCase("file"))){
+					if( args.length==3){
+						reportMgr.fileReport(args[1],args[2],p.getName());
 
-			if(Permissions.getHandler().has(p, "wanted.file") && (args[0].equalsIgnoreCase("file"))){
-				if( args.length==3){
-					reportMgr.fileReport(args[1],args[2],p);
-
-				}else{
-					sendM(p,ChatColor.RED + "[Wanted]Improper amount of arguments.");
-				}
-
-			}
-			if(Permissions.getHandler().has(p, "wanted.read") && (args[0].equalsIgnoreCase("read"))){
-				if(args.length==2){
-					reportMgr.listAllReports(1, p);
-				}else if(args.length>2){
-					sendM(p,ChatColor.RED + "[Wanted]Too many arguements.");
-				}else{
-					reportMgr.listAllReports(Integer.parseInt(args[1]), p);
-				}
-
-			}
-			if(Permissions.getHandler().has(p, "wanted.read") && (args[0].equalsIgnoreCase("get"))){
-				if (args.length==3){
-					reportMgr.getPReports( args[1], p, Integer.parseInt(args[2]));
-				}else{
-					sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
-				}
-
-			}
-			if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("drop"))){
-				if(args.length!=2){
-					if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
-						sendM(reportMgr.reports.get(Integer.parseInt(args[1])).target,ChatColor.BLUE+"[Wanted]A report against you has been dropped.");
-						sendM(p,ChatColor.BLUE+"[Wanted]You dropped the report.");
-						reportMgr.reports.remove(Integer.parseInt(args[1]));
 					}else{
-						sendM(p,ChatColor.RED+"[Wanted]No report exists with this ID.");
+						sendM(p,ChatColor.RED + "[Wanted]Improper amount of arguments.");
 					}
-				}else{
-					sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
-				}
 
-			}
-			if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("goto"))){
-				if(args.length==2){
-					if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
-						p.teleport(reportMgr.reports.get(Integer.parseInt(args[1])).L);
+				}
+				if(Permissions.getHandler().has(p, "wanted.read") && (args[0].equalsIgnoreCase("read"))){
+					if(args.length==2){
+						reportMgr.listAllReports(1, p);
+					}else if(args.length>2){
+						sendM(p,ChatColor.RED + "[Wanted]Too many arguements.");
+					}else{
+						reportMgr.listAllReports(Integer.parseInt(args[1]), p);
 					}
+
+				}
+				if(Permissions.getHandler().has(p, "wanted.read") && (args[0].equalsIgnoreCase("get"))){
+					if (args.length==3){
+						reportMgr.getPReports( args[1], p, Integer.parseInt(args[2]));
+					}else{
+						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
+					}
+
+				}
+				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("drop"))){
+					if(args.length!=2){
+						if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
+							if(getServer().matchPlayer(reportMgr.reports.get(Integer.parseInt(args[1])).target).contains(reportMgr.reports.get(Integer.parseInt(args[1])).target)){
+								sendM(getServer().getPlayer(reportMgr.reports.get(Integer.parseInt(args[1])).target),ChatColor.BLUE+"[Wanted]A report against you has been dropped.");
+							}
+							sendM(p,ChatColor.BLUE+"[Wanted]You dropped the report.");
+							reportMgr.reports.remove(Integer.parseInt(args[1]));
+						}else{
+							sendM(p,ChatColor.RED+"[Wanted]No report exists with this ID.");
+						}
+					}else{
+						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
+					}
+
+				}
+				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("resolve"))){
+					if(args.length!=2){
+						if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
+							if(!reportMgr.reports.get(Integer.parseInt(args[1])).solved){
+								if(getServer().matchPlayer(reportMgr.reports.get(Integer.parseInt(args[1])).target).contains(reportMgr.reports.get(Integer.parseInt(args[1])).target)){
+									sendM(getServer().getPlayer(reportMgr.reports.get(Integer.parseInt(args[1])).target),ChatColor.BLUE+"[Wanted]A report against you has been resolved.");
+								}
+								sendM(p,ChatColor.BLUE+"[Wanted]You resolved the report.");
+								reportMgr.reports.get(Integer.parseInt(args[1])).solved=true;
+							}
+						}else{
+							sendM(p,ChatColor.RED+"[Wanted]No report exists with this ID.");
+						}
+					}else{
+						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
+					}
+
+				}
+				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("goto"))){
+					if(args.length==2){
+						if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
+							p.teleport(reportMgr.reports.get(Integer.parseInt(args[1])).L);
+						}
+					}else{
+						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
+					}
+				}
+				if( (Permissions.getHandler().has(p, "wanted.manage")) && (args[0].equalsIgnoreCase("save"))){
+					rLog.saveData();
+				}
+			}
+			if((cmd.getName().equalsIgnoreCase("respond") && (Permissions.getHandler().has(p, "wanted.manage")))){
+				if(reportMgr.live!=null){
+					p.teleport(reportMgr.live.L);
 				}else{
-					sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
+					sendM(p,ChatColor.RED+"[Wanted]There is no live report at the moment.");
 				}
 			}
 		}
@@ -145,7 +178,8 @@ class reportManager{
 	Main plugin;
 	public boolean cool;
 	public int coolT;
-	public ArrayList<Player> blocked = new ArrayList<Player>();
+	public report live;
+	public ArrayList<String> blocked = new ArrayList<String>();
 	public HashMap<Integer, report> reports = new HashMap<Integer, report>();
 
 	public reportManager(Main instance){
@@ -157,48 +191,58 @@ class reportManager{
 	public int reportidCount=0;
 
 
-	public void fileReport(String name, String reason, Player caller){
-		if(reason.equalsIgnoreCase("grief") ||reason.equalsIgnoreCase("griefing") ||reason.equalsIgnoreCase("griefer")){
-
-			reports.put(reportidCount, new report(plugin.getServer().getPlayer(name), 1, caller,caller.getLocation(), reportidCount));
-			Main.outputConsole("Report filed. By:" + caller.getName()+"; Against:"+name+"; Reason:"+reason);caller.sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
-			plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "A report has been filed by " + caller.getName()+" against you  because:"+reason);
-			if(cool)
-				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new renew(caller,this), coolT);
-		}else if(reason.equalsIgnoreCase("thief") ||reason.equalsIgnoreCase("stealing")){
-			reports.put(reportidCount, new report(plugin.getServer().getPlayer(name), 2, caller,caller.getLocation(), reportidCount));
-			Main.outputConsole("Report filed. By:" + caller.getName()+"; Against:"+name+"; Reason:"+reason);caller.sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
-			plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "A report has been filed by " + caller.getName()+" against you  because:"+reason);
-			if(cool)
-				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new renew(caller,this), coolT);
-		}else if(reason.equalsIgnoreCase("assult") ||reason.equalsIgnoreCase("pvp") ||reason.equalsIgnoreCase("attack")){
-			reports.put(reportidCount, new report(plugin.getServer().getPlayer(name), 3, caller,caller.getLocation(), reportidCount));
-			Main.outputConsole("Report filed. By:" + caller.getName()+"; Against:"+name+"; Reason:"+reason);caller.sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
-			plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "A report has been filed by " + caller.getName()+" against you  because:"+reason);
-			if(cool)
-				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new renew(caller,this), coolT);
-		}else if(reason.equalsIgnoreCase("trespassing")){
-			reports.put(reportidCount, new report(plugin.getServer().getPlayer(name), 4, caller,caller.getLocation(), reportidCount));
-			Main.outputConsole("Report filed. By:" + caller.getName()+"; Against:"+name+"; Reason:"+reason);caller.sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
-			plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "A report has been filed by " + caller.getName()+" against you  because:"+reason);
-			if(cool)
-				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new renew(caller,this), coolT);
-		}else{
-			plugin.sendM(caller,"No such offense.");
+	public void fileReport(String name, String reason, String caller){
+		if(!blocked.contains(caller)){
+			boolean correct = false;
+			if(reason.equalsIgnoreCase("grief") ||reason.equalsIgnoreCase("griefing") ||reason.equalsIgnoreCase("griefer")){
+				reports.put(reportidCount, new report(name, 1, caller,plugin.getServer().getPlayer(caller).getLocation(), reportidCount));
+				Main.outputConsole("Report filed. By:" + caller+"; Against:"+name+"; Reason:"+reason);plugin.getServer().getPlayer(caller).sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
+				plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "[Wanted]A report has been filed by " + caller+" against you  because:"+reason);
+				correct=true;
+			}else if(reason.equalsIgnoreCase("thief") ||reason.equalsIgnoreCase("stealing")){
+				reports.put(reportidCount, new report(name, 2, caller,plugin.getServer().getPlayer(caller).getLocation(), reportidCount));
+				Main.outputConsole("Report filed. By:" + caller+"; Against:"+name+"; Reason:"+reason);plugin.getServer().getPlayer(caller).sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
+				plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "[Wanted]A report has been filed by " + caller+" against you  because:"+reason);
+				correct=true;
+			}else if(reason.equalsIgnoreCase("assult") ||reason.equalsIgnoreCase("pvp") ||reason.equalsIgnoreCase("attack")){
+				reports.put(reportidCount, new report(name, 3, caller,plugin.getServer().getPlayer(caller).getLocation(), reportidCount));
+				Main.outputConsole("Report filed. By:" + caller+"; Against:"+name+"; Reason:"+reason);plugin.getServer().getPlayer(caller).sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
+				plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "[Wanted]A report has been filed by " + caller+" against you  because:"+reason);
+				correct=true;
+			}else if(reason.equalsIgnoreCase("trespassing")){
+				reports.put(reportidCount, new report(name, 4, caller,plugin.getServer().getPlayer(caller).getLocation(), reportidCount));
+				Main.outputConsole("Report filed. By:" + caller+"; Against:"+name+"; Reason:"+reason);plugin.getServer().getPlayer(caller).sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
+				plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "[Wanted]A report has been filed by " + caller +" against you  because:"+reason);
+				correct=true;
+			}else{
+				plugin.sendM(plugin.getServer().getPlayer(caller),ChatColor.RED +"[Wanted]No such offense.");
+			}
+			if(correct){
+				live = reports.get(reportidCount-1);
+				Player[] L = plugin.getServer().getOnlinePlayers();
+				for(Player p : L){
+					if((plugin.Permissions.getHandler().has(p, "wanted.manage"))){
+						plugin.sendM(p, ChatColor.RED + "[Wanted]A report has been filed by " + caller +" against "+name+". /respond ?");
+					}
+				}
+				if(cool){
+					plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new renew(caller,this), coolT);
+					blocked.add(caller);
+				}
+			}
 		}
-
 	}
 
 	public String prReport( int reportID){
-		
+
 
 		if(reports.containsKey(reportID)){
 			report r = reports.get(reportID);
 
 			String ret="";
 
-			ret = "From: "+r.caller.getName()+";";
-			ret = ret + "Against: "+r.target.getName()+";";
+			ret = "From: "+r.caller+";";
+			ret = ret + "Against: "+r.target+";";
 			ret = ret + "ID: " + reportID + ";";
 			switch(r.reason){
 			case 1: ret = ret + "Reason:Griefing;";break;
@@ -215,12 +259,16 @@ class reportManager{
 	public void listAllReports( int page, Player p){
 
 		if ( page-1 <= (reports.size()-1)/7 && page > 0){
-			p.sendMessage(ChatColor.RED+"Reports list: Page "+ (page) + "/" + ((reports.size()-1)/7+1));
+			p.sendMessage(ChatColor.YELLOW+"[Wanted]Reports list: Page "+ (page) + "/" + ((reports.size()-1)/7+1));
 			int i =0;
 			for(Integer I : reports.keySet()){
 
 				if((page-1) * 7 <= i && i < (page) * 7){
-					p.sendMessage(ChatColor.GREEN+prReport(I));
+					if(reports.get(I).solved){
+						p.sendMessage(ChatColor.GREEN+prReport(I));
+					}else{
+						p.sendMessage(ChatColor.RED+prReport(I));
+					}
 				}
 				i++;
 			}
@@ -229,18 +277,22 @@ class reportManager{
 	public void getPReports(String name, Player p, int page){
 		int total=0;
 		for(Integer I : reports.keySet()){
-			if(reports.get(I).target.getName().equalsIgnoreCase(name)){
+			if(reports.get(I).target.equalsIgnoreCase(name)){
 				total++;
 			}
 		}
 		if ( page-1 <= (total-1)/7 && page > 0){
 			if(total>7)
-				p.sendMessage(ChatColor.RED+"Reports list: Page "+ (page) + "/" + ((reports.size()-1)/7+1));
+				p.sendMessage(ChatColor.YELLOW+"[Wanted]Reports list: Page "+ (page) + "/" + ((reports.size()-1)/7+1));
 			int i =0;
 			for(Integer I : reports.keySet()){
-				if(reports.get(I).target.getName().equalsIgnoreCase(name)){
+				if(reports.get(I).target.equalsIgnoreCase(name)){
 					if((page-1) * 7 <= i && i < (page) * 7){
-						p.sendMessage(ChatColor.GREEN+prReport(I));
+						if(reports.get(I).solved){
+							p.sendMessage(ChatColor.GREEN+prReport(I));
+						}else{
+							p.sendMessage(ChatColor.RED+prReport(I));
+						}
 					}
 					i++;
 				}
@@ -251,17 +303,17 @@ class reportManager{
 }
 
 class report {
-	Player caller, target;
+	String caller, target;
 	Location L;
 	int reason, idNum;
 	boolean solved;
-	public report(Player player, int i, Player caller2, Location location,
+	public report(String player, int i, String caller2, Location location,
 			int reportidCount) {
 		caller = caller2; target = player;
 		reason=i; L = location; idNum=reportidCount;
 		solved = false;
 	}
-	public report(Player player, int i, Player caller2, Location location,
+	public report(String player, int i, String caller2, Location location,
 			int reportidCount, boolean slv) {
 		caller = caller2; target = player;
 		reason=i; L = location; idNum=reportidCount;
@@ -273,14 +325,14 @@ class report {
 class renew implements Runnable{
 
 	reportManager rm;
-	Player pl;
-	public renew(Player p, reportManager rmt){
-		pl=p;
+	String pl;
+	public renew(String caller, reportManager rmt){
+		pl=caller;
 		rm=rmt;
 	}
 	@Override
 	public void run() {
-		// TODO Auto-generated method stub
+		rm.blocked.remove(pl);
 
 	}
 }

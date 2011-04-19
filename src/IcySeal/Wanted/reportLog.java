@@ -27,13 +27,14 @@ class reportLog{
 		}
 		boolean loadData = false;
 		try {
-			loadData = !(new File("plugins/Wanted/wanted.txt").createNewFile());
+			loadData = !(new File(dataFile).createNewFile());
 		} catch (IOException e) {
 			plugin.outputConsole("Error upon creating data file...");
 		}
 		String line="";
 		try {
 
+			int max = 0;
 			Scanner s = new Scanner(new File(dataFile));
 			while(s.hasNextLine()){	
 
@@ -48,16 +49,19 @@ class reportLog{
 							plugin.reportMgr.cool=true;
 							plugin.reportMgr.coolT=Integer.parseInt(args[1]);
 						}
-					}else if(args[0].equalsIgnoreCase("#idCount")){
-						if(Integer.parseInt(args[1])!=0){
-							plugin.reportMgr.reportidCount=Integer.parseInt(args[1]);
-						}
 					}
 				}else if(line.substring(0,1).equalsIgnoreCase("@")){
 					String[] args = line.split(",");
-					plugin.reportMgr.reports.put(Integer.parseInt(args[0]), new report(plugin.getServer().getPlayer(args[1]),Integer.parseInt(args[2]), plugin.getServer().getPlayer(args[3]),new Location(plugin.getServer().getWorld(args[4]),Double.parseDouble(args[5]),Double.parseDouble(args[6]),Double.parseDouble(args[7])), Integer.parseInt(args[0]),Boolean.parseBoolean(args[8])));
+					plugin.reportMgr.reportidCount = Math.max(plugin.reportMgr.reportidCount, Integer.parseInt(args[0].substring(1))+1);
+					plugin.reportMgr.reports.put(Integer.parseInt(args[0].substring(1)), new report(args[1],Integer.parseInt(args[2]), args[3],new Location(plugin.getServer().getWorld(args[4]),Double.parseDouble(args[5]),Double.parseDouble(args[6]),Double.parseDouble(args[7])), Integer.parseInt(args[0].substring(1)),Boolean.parseBoolean(args[8])));
 				}
 			}
+			if(plugin.reportMgr.reportidCount!=0){
+				plugin.outputConsole("Currently "+plugin.reportMgr.reportidCount+" reports.");
+			}else{
+				plugin.outputConsole("There are no reports.");
+			}
+			s.close();
 		} catch (FileNotFoundException e) {
 			plugin.outputConsole("Error upon loading save data...");
 		}
@@ -76,31 +80,33 @@ class reportLog{
 		}
 		boolean saveData = false;
 		try {
-			saveData = !(new File("plugins/Wanted/wanted.txt").createNewFile());
+			saveData = !(new File(dataFile).createNewFile());
 		} catch (IOException e) {
 			plugin.outputConsole("Error upon creating data file...");
 		}
 		try {
 			out = new BufferedWriter(new FileWriter(dataFile));
+			writeLine("#cool="+plugin.reportMgr.coolT);
+			String write="";
+			for(report r : plugin.reportMgr.reports.values()){
+				
+				write ="@";
+				write += r.idNum+",";
+				write = write + r.target+",";
+				write = write + r.reason+",";
+				write = write + r.caller+",";
+				write = write + r.L.getWorld().getName()+",";
+				write = write + r.L.getBlockX()+",";
+				write = write + r.L.getBlockY()+",";
+				write = write + r.L.getBlockZ()+",";
+				write = write + r.solved;
+				writeLine(write);
+			}
+			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		writeLine("#cool="+plugin.reportMgr.coolT);
-		writeLine("#idCount="+plugin.reportMgr.reportidCount);
-		String write="";
-		for(Integer I : plugin.reportMgr.reports.keySet()){
-			write ="@";
-			write += I+",";
-			write += plugin.reportMgr.reports.get(I).target.getName()+",";
-			write += plugin.reportMgr.reports.get(I).reason+",";
-			write += plugin.reportMgr.reports.get(I).caller.getName()+",";
-			write += plugin.reportMgr.reports.get(I).caller.getWorld().getName()+",";
-			write += plugin.reportMgr.reports.get(I).caller.getLocation().getBlockX()+",";
-			write += plugin.reportMgr.reports.get(I).caller.getLocation().getBlockY()+",";
-			write += plugin.reportMgr.reports.get(I).caller.getLocation().getBlockZ()+",";
-			write += plugin.reportMgr.reports.get(I).solved;
-			writeLine(write);
-		}
+		
 
 		return true;
 	}
@@ -113,17 +119,18 @@ class reportLog{
 		}
 		boolean saveData = false;
 		try {
-			saveData = !(new File("plugins/Wanted/wanted.txt").createNewFile());
+			saveData = !(new File(dataFile).createNewFile());
 		} catch (IOException e) {
 			plugin.outputConsole("Error upon creating data file...");
 		}
 		try {
 			out = new BufferedWriter(new FileWriter(dataFile));
+			writeLine("#cool="+plugin.reportMgr.coolT);
+			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		writeLine("#cool="+plugin.reportMgr.coolT);
-		writeLine("#idCount="+plugin.reportMgr.reportidCount);
+		
 		return true;
 	}
 	public void writeLine(String str){
