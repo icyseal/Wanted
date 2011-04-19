@@ -1,0 +1,10 @@
+name: Wanted
+version: 1.0.0
+main: IcySeal.Wanted.Main
+commands:
+  wanted:
+    description:
+    usage:
+  wa:
+    description:
+    usage:
