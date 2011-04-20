@@ -49,15 +49,17 @@ class reportLog{
 							plugin.reportMgr.cool=true;
 							plugin.reportMgr.coolT=Integer.parseInt(args[1]);
 						}
+					}else if(args[0].equalsIgnoreCase("#offenses")){
+						plugin.reportMgr.offenses = args[1].split(",");
 					}
 				}else if(line.substring(0,1).equalsIgnoreCase("@")){
 					String[] args = line.split(",");
 					plugin.reportMgr.reportidCount = Math.max(plugin.reportMgr.reportidCount, Integer.parseInt(args[0].substring(1))+1);
-					plugin.reportMgr.reports.put(Integer.parseInt(args[0].substring(1)), new report(args[1],Integer.parseInt(args[2]), args[3],new Location(plugin.getServer().getWorld(args[4]),Double.parseDouble(args[5]),Double.parseDouble(args[6]),Double.parseDouble(args[7])), Integer.parseInt(args[0].substring(1)),Boolean.parseBoolean(args[8])));
+					plugin.reportMgr.reports.put(Integer.parseInt(args[0].substring(1)), new report(args[1],args[2], args[3],new Location(plugin.getServer().getWorld(args[4]),Double.parseDouble(args[5]),Double.parseDouble(args[6]),Double.parseDouble(args[7])), Integer.parseInt(args[0].substring(1)),Boolean.parseBoolean(args[8])));
 				}
 			}
 			if(plugin.reportMgr.reportidCount!=0){
-				plugin.outputConsole("Currently "+plugin.reportMgr.reportidCount+" reports.");
+				plugin.outputConsole("Currently "+plugin.reportMgr.reports.size()+" reports.");
 			}else{
 				plugin.outputConsole("There are no reports.");
 			}
@@ -87,13 +89,19 @@ class reportLog{
 		try {
 			out = new BufferedWriter(new FileWriter(dataFile));
 			writeLine("#cool="+plugin.reportMgr.coolT);
-			String write="";
+			String write="#offenses=";
+			for(String s: plugin.reportMgr.offenses){
+				write = write + s + ",";
+			}
+			writeLine(write.substring(0, write.length()-1));
+			
+			write="";
 			for(report r : plugin.reportMgr.reports.values()){
 				
 				write ="@";
 				write += r.idNum+",";
 				write = write + r.target+",";
-				write = write + r.reason+",";
+				write = write + r.offense+",";
 				write = write + r.caller+",";
 				write = write + r.L.getWorld().getName()+",";
 				write = write + r.L.getBlockX()+",";
@@ -126,6 +134,8 @@ class reportLog{
 		try {
 			out = new BufferedWriter(new FileWriter(dataFile));
 			writeLine("#cool="+plugin.reportMgr.coolT);
+			writeLine("#offenses=Griefing,Assault,Trespassing");
+			
 			out.close();
 		} catch (IOException e) {
 			e.printStackTrace();
