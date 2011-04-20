@@ -51,6 +51,7 @@ public class Main extends JavaPlugin{
 		outputConsole(" Reports saved.");
 
 	}
+	
 
 	@Override
 	public void onEnable() {
@@ -67,7 +68,7 @@ public class Main extends JavaPlugin{
 		}
 		if(!new File(rLog.dataFile).exists()){
 			//try { new File(rLog.dataFile).createNewFile(); }catch(Exception e){ outputConsole("Could not create save file."); }
-			outputConsole("Running setup.");
+			outputConsole("Running save file setup.");
 			rLog.setup();
 		}else{
 			outputConsole("Found data file commencing load.");
@@ -85,6 +86,8 @@ public class Main extends JavaPlugin{
 		if(sender instanceof Player && args.length > 0){
 			Player p = (Player)sender;
 			if((cmd.getName().equalsIgnoreCase("wanted")||cmd.getName().equalsIgnoreCase("wa"))){
+				
+				
 				if(Permissions.getHandler().has(p, "wanted.file") && (args[0].equalsIgnoreCase("file"))){
 					if( args.length==3){
 						reportMgr.fileReport(args[1],args[2],p.getName());
@@ -94,24 +97,37 @@ public class Main extends JavaPlugin{
 					}
 
 				}
+				
+				
+				
 				if(Permissions.getHandler().has(p, "wanted.read") && (args[0].equalsIgnoreCase("read"))){
+					if(reportMgr.reports.size()!=0){
+						if(args.length==1){
+							reportMgr.listAllReports(1, p);
+						}else if(args.length>2){
+							sendM(p,ChatColor.RED + "[Wanted]Too many arguements.");
+						}else{
+							reportMgr.listAllReports(Integer.parseInt(args[1]), p);
+						}
+					}else{
+						sendM(p,ChatColor.RED + "[Wanted]No reports have been filed yet.");
+					}
+				}
+				
+				
+				
+				if(Permissions.getHandler().has(p, "wanted.read") && (args[0].equalsIgnoreCase("get"))){
 					if(args.length==2){
-						reportMgr.listAllReports(1, p);
-					}else if(args.length>2){
+						reportMgr.getPReports( args[1], p, 1);
+					}else if(args.length>3){
 						sendM(p,ChatColor.RED + "[Wanted]Too many arguements.");
 					}else{
-						reportMgr.listAllReports(Integer.parseInt(args[1]), p);
-					}
-
-				}
-				if(Permissions.getHandler().has(p, "wanted.read") && (args[0].equalsIgnoreCase("get"))){
-					if (args.length==3){
 						reportMgr.getPReports( args[1], p, Integer.parseInt(args[2]));
-					}else{
-						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
 					}
-
 				}
+				
+				
+				
 				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("drop"))){
 					if(args.length!=2){
 						if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
@@ -128,6 +144,9 @@ public class Main extends JavaPlugin{
 					}
 
 				}
+				
+				
+				
 				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("resolve"))){
 					if(args.length!=2){
 						if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
@@ -146,6 +165,9 @@ public class Main extends JavaPlugin{
 					}
 
 				}
+				
+				
+				
 				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("goto"))){
 					if(args.length==2){
 						if(reportMgr.reports.containsKey(Integer.parseInt(args[1]))){
@@ -156,6 +178,9 @@ public class Main extends JavaPlugin{
 						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
 					}
 				}
+				
+				
+				
 				if(Permissions.getHandler().has(p, "wanted.manage") && (args[0].equalsIgnoreCase("return"))){
 					if(args.length==2){
 						if(reportMgr.gobackLocs.containsKey(p)){
@@ -168,6 +193,16 @@ public class Main extends JavaPlugin{
 						sendM(p,ChatColor.RED+"[Wanted]Improper arguments used.");
 					}
 				}
+				
+				
+				if( (Permissions.getHandler().has(p, "wanted.manage")) && (args[0].equalsIgnoreCase("ignore"))){
+					if(!reportMgr.ignore.contains(p)){
+						reportMgr.ignore.add(p.getName());
+					}else{
+						reportMgr.ignore.remove(p.getName());
+					}
+				}
+				
 				if( (Permissions.getHandler().has(p, "wanted.manage")) && (args[0].equalsIgnoreCase("save"))){
 					rLog.saveData();
 				}
@@ -198,8 +233,10 @@ class reportManager{
 	public int coolT;
 	public report live;
 	public ArrayList<String> blocked = new ArrayList<String>();
+	public ArrayList<String> ignore = new ArrayList<String>();
 	public HashMap<Integer, report> reports = new HashMap<Integer, report>();
 	public HashMap<Player, Location> gobackLocs = new HashMap<Player, Location>();
+	
 
 	public reportManager(Main instance){
 
@@ -223,7 +260,7 @@ class reportManager{
 				Main.outputConsole("Report filed. By:" + caller+"; Against:"+name+"; Reason:"+reason);plugin.getServer().getPlayer(caller).sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
 				plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "[Wanted]A report has been filed by " + caller+" against you  because:"+reason);
 				correct=true;
-			}else if(reason.equalsIgnoreCase("assult") ||reason.equalsIgnoreCase("pvp") ||reason.equalsIgnoreCase("attack")){
+			}else if(reason.equalsIgnoreCase("assault") ||reason.equalsIgnoreCase("pvp") ||reason.equalsIgnoreCase("attack")){
 				reports.put(reportidCount, new report(name, 3, caller,plugin.getServer().getPlayer(caller).getLocation(), reportidCount));
 				Main.outputConsole("Report filed. By:" + caller+"; Against:"+name+"; Reason:"+reason);plugin.getServer().getPlayer(caller).sendMessage(ChatColor.BLUE+"[Wanted] Report filed.");reportidCount++;
 				plugin.sendM(plugin.getServer().getPlayer(name),ChatColor.RED + "[Wanted]A report has been filed by " + caller+" against you  because:"+reason);
@@ -251,7 +288,6 @@ class reportManager{
 			}
 		}
 	}
-
 	public String prReport( int reportID){
 
 
@@ -266,7 +302,7 @@ class reportManager{
 			switch(r.reason){
 			case 1: ret = ret + "Reason:Griefing;";break;
 			case 2: ret = ret + "Reason:Stealing;";break;
-			case 3: ret = ret + "Reason:Assult;";break;
+			case 3: ret = ret + "Reason:Assault;";break;
 			case 4: ret = ret + "Reason:Tresspassing;";break;
 			default:ret = ret + "Reason:Other;";break;
 			}
@@ -300,22 +336,26 @@ class reportManager{
 				total++;
 			}
 		}
-		if ( page-1 <= (total-1)/7 && page > 0){
-			if(total>7)
-				p.sendMessage(ChatColor.YELLOW+"[Wanted]Reports list: Page "+ (page) + "/" + ((reports.size()-1)/7+1));
-			int i =0;
-			for(Integer I : reports.keySet()){
-				if(reports.get(I).target.equalsIgnoreCase(name)){
-					if((page-1) * 7 <= i && i < (page) * 7){
-						if(reports.get(I).solved){
-							p.sendMessage(ChatColor.GREEN+prReport(I));
-						}else{
-							p.sendMessage(ChatColor.RED+prReport(I));
+		if(total != 0){
+			if ( page-1 <= (total-1)/7 && page > 0){
+				if(total>7)
+					p.sendMessage(ChatColor.YELLOW+"[Wanted]Reports list: Page "+ (page) + "/" + ((reports.size()-1)/7+1));
+				int i =0;
+				for(Integer I : reports.keySet()){
+					if(reports.get(I).target.equalsIgnoreCase(name)){
+						if((page-1) * 7 <= i && i < (page) * 7){
+							if(reports.get(I).solved){
+								p.sendMessage(ChatColor.GREEN+prReport(I));
+							}else{
+								p.sendMessage(ChatColor.RED+prReport(I));
+							}
 						}
+						i++;
 					}
-					i++;
 				}
 			}
+		}else{
+			plugin.sendM(p, ChatColor.RED+"[Wanted]"+name+" has not been reported.");
 		}
 	}
 
